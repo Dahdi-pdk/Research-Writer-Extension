@@ -1,0 +1,11 @@
+{
+  "extName": {
+    "message": "ResearchWriter"
+  },
+  "extDescription": {
+    "message": "Scientific writing workspace: live-rendered Markdown editor, source tabs, and automatic citations from PDFs. Fully local."
+  },
+  "actionTitle": {
+    "message": "Open ResearchWriter"
+  }
+}

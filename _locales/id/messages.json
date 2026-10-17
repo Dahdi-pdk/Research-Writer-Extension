@@ -1,0 +1,11 @@
+{
+  "extName": {
+    "message": "ResearchWriter"
+  },
+  "extDescription": {
+    "message": "Editor Markdown render langsung, tab sumber, dan sitasi otomatis dari PDF untuk penulisan ilmiah. Sepenuhnya lokal."
+  },
+  "actionTitle": {
+    "message": "Buka ResearchWriter"
+  }
+}

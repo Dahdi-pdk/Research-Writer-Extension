@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ResearchWriter</title>
+  <link rel="stylesheet" href="workspace.css">
+</head>
+<body>
+  <header class="topbar">
+    <button id="btn-toggle-panel" class="icon-btn" title="Tampilkan/sembunyikan panel (Ctrl+\)" aria-label="Tampilkan atau sembunyikan panel">☰</button>
+    <strong class="brand">ResearchWriter</strong>
+    <input id="doc-title" class="doc-title" type="text" placeholder="Judul dokumen" aria-label="Judul dokumen" maxlength="200">
+    <div class="status" aria-live="polite">
+      <span id="status-file"></span>
+      <span id="status-draft"></span>
+    </div>
+    <div class="actions">
+      <button id="btn-new" title="Dokumen baru">Baru</button>
+      <button id="btn-open" title="Buka file Markdown (Ctrl+O)">Buka</button>
+      <button id="btn-save" title="Simpan ke file (Ctrl+S)">Simpan</button>
+      <button id="btn-saveas" title="Simpan sebagai… (Ctrl+Shift+S)">Simpan sebagai</button>
+      <button id="btn-theme" title="Ganti tema" aria-label="Ganti tema">◐</button>
+    </div>
+  </header>
+
+  <div class="fmtbar" id="fmtbar" role="toolbar" aria-label="Format Markdown">
+    <div class="grp">
+      <button data-cmd="undo" title="Urungkan perubahan dokumen (Ctrl+Z di luar blok)" aria-label="Urungkan">↶</button>
+      <button data-cmd="redo" title="Ulangi (Ctrl+Y)" aria-label="Ulangi">↷</button>
+    </div>
+    <div class="grp">
+      <button data-cmd="h1" title="Heading 1 (Ctrl+Shift+1)">H1</button>
+      <button data-cmd="h2" title="Heading 2 (Ctrl+Shift+2)">H2</button>
+      <button data-cmd="h3" title="Heading 3 (Ctrl+Shift+3)">H3</button>
+    </div>
+    <div class="grp">
+      <button data-cmd="bold" title="Tebal (Ctrl+B)"><b>B</b></button>
+      <button data-cmd="italic" title="Miring (Ctrl+I)"><i>I</i></button>
+      <button data-cmd="strike" title="Coret (Ctrl+Shift+X)"><s>S</s></button>
+      <button data-cmd="code" title="Kode inline">&lt;/&gt;</button>
+    </div>
+    <div class="grp">
+      <button data-cmd="ul" title="Daftar poin">• —</button>
+      <button data-cmd="ol" title="Daftar bernomor">1. —</button>
+      <button data-cmd="task" title="Checklist">☑</button>
+      <button data-cmd="quote" title="Kutipan">❝</button>
+    </div>
+    <div class="grp">
+      <button data-cmd="codeblock" title="Blok kode (Ctrl+Shift+C)">{ }</button>
+      <button data-cmd="link" title="Tautan (Ctrl+K)">Link</button>
+      <button data-cmd="table" title="Tabel">Tabel</button>
+      <button data-cmd="hr" title="Garis pemisah">―</button>
+    </div>
+    <div class="grp">
+      <button data-cmd="cite" title="Sisipkan sitasi dari daftar sumber (Ctrl+Shift+K). Mengetik [@ juga memunculkan saran.">[@] Kutip</button>
+      <button data-cmd="citepdf" title="Pilih PDF → metadata (penulis, tahun, DOI) diekstrak otomatis → sitasi disisipkan">Kutip PDF</button>
+      <button data-cmd="bib" title="Sisipkan daftar pustaka dari sitasi di dokumen">Pustaka</button>
+    </div>
+    <div class="grp">
+      <button id="btn-history" type="button" title="Riwayat versi: pulihkan isi dokumen dari titik pemulihan sebelumnya">Riwayat</button>
+      <button id="btn-source" data-cmd="source" title="Tampilkan seluruh dokumen sebagai teks Markdown" aria-pressed="false">Sumber</button>
+      <button id="btn-help" title="Pintasan keyboard">?</button>
+    </div>
+  </div>
+
+  <main class="layout">
+    <aside id="panel" class="panel" aria-label="Panel navigasi">
+      <div class="panel-tabs" role="tablist">
+        <button id="ptab-docs" role="tab" aria-selected="true" aria-controls="pane-docs">Dokumen</button>
+        <button id="ptab-sources" role="tab" aria-selected="false" aria-controls="pane-sources">Sumber</button>
+        <button id="ptab-outline" role="tab" aria-selected="false" aria-controls="pane-outline">Outline</button>
+      </div>
+      <input id="doc-search" class="search" type="search" placeholder="Cari…" aria-label="Cari di daftar">
+      <div id="pane-docs" class="pane" role="tabpanel" aria-labelledby="ptab-docs">
+        <div class="pane-head"><span>Dokumen Markdown</span>
+          <button id="btn-new-side" class="icon-btn" title="Dokumen baru" aria-label="Dokumen baru">＋</button></div>
+        <ul id="doc-list" class="doc-list"></ul>
+      </div>
+      <div id="pane-outline" class="pane" role="tabpanel" aria-labelledby="ptab-outline" hidden>
+        <div class="pane-head"><span id="outline-title">Struktur dokumen</span></div>
+        <ul id="outline-list" class="doc-list outline-list"></ul>
+        <div class="panel-note">Klik heading untuk melompat ke bagiannya. Bagian yang sedang dibaca ditandai.</div>
+      </div>
+      <div id="pane-sources" class="pane" role="tabpanel" aria-labelledby="ptab-sources" hidden>
+        <div class="src-add">
+          <input id="src-url" type="text" placeholder="Tempel URL http(s)… lalu Enter" aria-label="URL sumber" spellcheck="false">
+          <button id="src-add-url" type="button">Tambah</button>
+        </div>
+        <div class="src-actions">
+          <button id="src-add-pdf" type="button" title="Pilih satu atau beberapa berkas PDF">＋ PDF…</button>
+          <button id="src-add-folder" type="button" title="Pilih folder: semua PDF di dalamnya (termasuk subfolder) ditambahkan dan metadatanya dibaca otomatis">＋ Folder…</button>
+        </div>
+        <div class="src-actions">
+          <button id="src-extract-all" type="button" title="Ekstrak penulis/tahun/DOI untuk PDF lokal yang datanya belum lengkap">✨ Ekstrak semua</button>
+          <button id="src-rescan" type="button" title="Pindai ulang folder terdaftar untuk PDF yang baru ditambahkan">⟳ Pindai folder</button>
+        </div>
+        <div id="src-progress" class="src-progress" role="status" hidden><span id="src-progress-text"></span><button id="src-cancel" type="button">Hentikan</button></div>
+        <div id="src-folders" class="src-folders" hidden></div>
+        <ul id="src-list" class="doc-list"></ul>
+        <div id="src-note" class="panel-note"></div>
+      </div>
+    </aside>
+    <div id="resizer" class="resizer" role="separator" aria-orientation="vertical" tabindex="0" title="Seret untuk mengubah lebar panel"></div>
+
+    <section id="editor-area" class="editor-area">
+      <div id="canvas" class="canvas"></div>
+      <textarea id="source" class="source" spellcheck="false" aria-label="Seluruh dokumen sebagai teks Markdown"></textarea>
+    </section>
+  </main>
+
+  <footer class="statusbar">
+    <span id="status-mode" class="pill">TAMPILAN</span>
+    <span id="status-blocks"></span>
+    <span id="status-counts"></span>
+    <span class="hint">Klik blok untuk menyunting · Esc selesai · Enter dua kali / Ctrl+Enter = blok baru</span>
+  </footer>
+
+  <div id="toast" class="toast" hidden><span id="toast-text"></span><button id="toast-action" type="button"></button></div>
+
+  <div id="help" class="overlay" hidden>
+    <div class="dialog" role="dialog" aria-modal="true" aria-label="Pintasan keyboard">
+      <div class="dialog-head"><strong>Pintasan keyboard</strong><button id="help-close" class="icon-btn" aria-label="Tutup">✕</button></div>
+      <dl class="keys">
+        <dt>Klik blok</dt><dd>Sunting blok (teks Markdown tampil)</dd>
+        <dt>Esc</dt><dd>Selesai menyunting, blok dirender</dd>
+        <dt>Enter dua kali di akhir blok</dt><dd>Buat blok baru (juga Ctrl+Enter)</dd>
+        <dt>↑ / ↓ di tepi blok</dt><dd>Pindah ke blok sebelumnya / berikutnya</dd>
+        <dt>Backspace di awal blok</dt><dd>Gabung dengan blok sebelumnya</dd>
+        <dt>Ctrl+Shift+Backspace</dt><dd>Hapus blok aktif</dd>
+        <dt>Tab / Shift+Tab</dt><dd>Geser indentasi (Esc dulu untuk keluar dari editor)</dd>
+        <dt>Ketik [@</dt><dd>Saran sitasi dari sumber yang ada; ↑/↓ lalu Enter atau Tab</dd>
+        <dt>Kutip PDF</dt><dd>Pilih PDF: metadata diekstrak otomatis lalu sitasi disisipkan</dd>
+        <dt>Ctrl+Shift+K</dt><dd>Sisipkan sitasi [@kunci] dari daftar sumber</dd>
+        <dt>Klik sitasi (Penulis, Tahun)</dt><dd>Buka sumbernya; jika tab sudah ada, pindah ke tab itu</dd>
+        <dt>Ctrl+B / I / K</dt><dd>Tebal / miring / tautan</dd>
+        <dt>Ctrl+Shift+X / C / 1–3</dt><dd>Coret / blok kode / heading</dd>
+        <dt>Alt+↑ / Alt+↓</dt><dd>Pindahkan blok aktif ke atas / bawah</dd>
+        <dt>Ctrl+Alt+1 / 2 / 3</dt><dd>Panel: Dokumen / Sumber / Outline</dd>
+        <dt>Ctrl+/</dt><dd>Tampilkan/sembunyikan daftar pintasan ini</dd>
+        <dt>Ctrl+Z, Ctrl+Y (di luar blok)</dt><dd>Urungkan / ulangi perubahan dokumen</dd>
+        <dt>Ctrl+S / Ctrl+Shift+S / Ctrl+O</dt><dd>Simpan / simpan sebagai / buka</dd>
+        <dt>Ctrl+\</dt><dd>Tampilkan/sembunyikan panel</dd>
+      </dl>
+    </div>
+  </div>
+
+  <dialog id="ref-dialog" class="dlg" aria-labelledby="ref-dlg-title">
+    <div class="dlg-head"><strong id="ref-dlg-title">Detail referensi</strong></div>
+    <div class="dlg-body">
+      <label>Judul / nama tampilan<input id="ref-title" type="text" maxlength="300"></label>
+      <label>Penulis <small>satu per baris: "Belakang, Depan". Organisasi: {Nama Organisasi}</small>
+        <textarea id="ref-authors" rows="3" spellcheck="false"></textarea></label>
+      <div class="row2">
+        <label>Tahun<input id="ref-year" type="text" maxlength="12" placeholder="mis. 2017"></label>
+        <label>Jurnal / situs / penerbit<input id="ref-venue" type="text" maxlength="200"></label>
+      </div>
+      <label>DOI<input id="ref-doi" type="text" maxlength="200" placeholder="10.xxxx/…" spellcheck="false"></label>
+      <label>Kunci sitasi <small>kosong = dibuat otomatis saat pertama dikutip. Mengubah kunci memutus sitasi lama.</small>
+        <input id="ref-key" type="text" maxlength="60" spellcheck="false"></label>
+      <label>Alamat sumber<input id="ref-url" type="text" readonly></label>
+      <p id="ref-note" class="ref-note" hidden></p>
+      <p class="preview-line">Tampil di teks sebagai: <span id="ref-preview" class="cite"></span></p>
+      <p id="ref-error" class="form-error" role="alert" hidden></p>
+    </div>
+    <div class="dlg-foot"><button id="ref-cancel" type="button">Batal</button><button id="ref-save" type="button" class="primary">Simpan</button></div>
+  </dialog>
+
+  <dialog id="pick-dialog" class="dlg" aria-labelledby="pick-dlg-title">
+    <div class="dlg-head"><strong id="pick-dlg-title">Sisipkan sitasi</strong></div>
+    <div class="dlg-body">
+      <input id="pick-search" type="search" placeholder="Cari judul, penulis, tahun… (Enter = pilih yang pertama)" aria-label="Cari sumber">
+      <ul id="pick-list" class="pick-list" role="listbox" aria-multiselectable="true" aria-label="Daftar sumber"></ul>
+      <label>Halaman / lokator <small>opsional, hanya bila satu sumber dipilih</small>
+        <input id="pick-locator" type="text" placeholder="mis. hlm. 5" maxlength="60" disabled></label>
+    </div>
+    <div class="dlg-foot"><button id="pick-cancel" type="button">Batal</button><button id="pick-ok" type="button" class="primary" disabled>Sisipkan</button></div>
+  </dialog>
+
+  <dialog id="hist-dialog" class="dlg dlg-wide" aria-labelledby="hist-title">
+    <div class="dlg-head"><strong id="hist-title">Riwayat versi dokumen</strong></div>
+    <div class="dlg-body hist-body">
+      <ul id="hist-list" class="pick-list hist-list" aria-label="Titik pemulihan"></ul>
+      <div class="hist-right">
+        <textarea id="hist-preview" class="hist-preview" readonly spellcheck="false" aria-label="Pratinjau versi terpilih"></textarea>
+        <p id="hist-info" class="hist-info"></p>
+      </div>
+    </div>
+    <div class="dlg-foot"><button id="hist-manual" type="button">Simpan titik pemulihan sekarang</button><button id="hist-close" type="button">Tutup</button><button id="hist-restore" type="button" class="primary">Pulihkan versi ini</button></div>
+  </dialog>
+
+  <script type="module" src="workspace.js"></script>
+</body>
+</html>
